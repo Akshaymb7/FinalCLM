@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Management - Bulk Renewal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Contract Management</h1>
+            <button class="btn-primary" id="addNewContract">+ Add New Contract</button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('contracts')">Contract Renewal</button>
+            <button class="tab-button" onclick="showTab('audit')">Audit Log</button>
+        </div>
+
+        <!-- Contract Renewal Tab -->
+        <div id="contracts" class="tab-content active">
+            <div class="filters">
+                <input type="text" placeholder="Search contracts..." class="search-input">
+                <select class="filter-select">
+                    <option>All Status</option>
+                    <option>Active</option>
+                    <option>Expiring Soon</option>
+                    <option>Expired</option>
+                </select>
+                <select class="filter-select">
+                    <option>All Types</option>
+                    <option>Service Agreement</option>
+                    <option>License Agreement</option>
+                    <option>Maintenance Contract</option>
+                </select>
+                <button class="btn-secondary" onclick="toggleBulkActions()">Bulk Actions</button>
+            </div>
+
+            <div id="bulkActions" class="bulk-actions hidden">
+                <div class="bulk-controls">
+                    <span id="selectedCount">0 contracts selected</span>
+                    <button class="btn-primary" onclick="bulkRenew()">Renew Selected</button>
+                </div>
+            </div>
+
+            <table class="contracts-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                        <th>Contract ID</th>
+                        <th>Title</th>
+                        <th>Client</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contractsTableBody">
+                    <!-- Contract rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Audit Log Tab -->
+        <div id="audit" class="tab-content">
+            <div class="audit-filters">
+                <input type="text" placeholder="Search audit logs..." class="search-input">
+                <select class="filter-select">
+                    <option>All Actions</option>
+                    <option>Contract Created</option>
+                    <option>Contract Renewed</option>
+                    <option>Contract Terminated</option>
+                    <option>Contract Modified</option>
+                </select>
+                <input type="date" class="date-input" placeholder="From Date">
+                <input type="date" class="date-input" placeholder="To Date">
+            </div>
+
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Contracts Affected</th>
+                        <th>Template Applied</th>
+                        <th>Renewal Date</th>
+                        <th>Result Summary</th>
+                        <th>Failed Contracts</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    <!-- Audit log rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bulk Renew Modal -->
+    <div id="renewModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bulk Renew Contracts</h2>
+                <button class="modal-close" onclick="closeRenewModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-field">
+                    <label for="renewTemplate">Renewal Template</label>
+                    <select id="renewTemplate" class="filter-select">
+                        <option value="standard-12">Standard - 12 months</option>
+                        <option value="standard-24">Standard - 24 months</option>
+                        <option value="promo-q4">Promo - Q4 Incentive</option>
+                        <option value="custom">Custom Terms</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="renewDate">Renewal Date</label>
+                    <input id="renewDate" type="date" class="date-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeRenewModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmBulkRenew()">Confirm Renew</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
