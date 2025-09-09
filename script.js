@@ -6,6 +6,7 @@ const contractsData = [
         client: 'TechCorp Inc.',
         type: 'License Agreement',
         status: 'active',
+        approvalStatus: 'Approved',
         startDate: '2024-01-15',
         endDate: '2024-12-15',
         value: '$125,000'
@@ -16,6 +17,7 @@ const contractsData = [
         client: 'Global Systems Ltd.',
         type: 'Maintenance Contract',
         status: 'expiring',
+        approvalStatus: 'Pending',
         startDate: '2023-06-01',
         endDate: '2024-05-31',
         value: '$85,000'
@@ -26,6 +28,7 @@ const contractsData = [
         client: 'DataFlow Solutions',
         type: 'Service Agreement',
         status: 'active',
+        approvalStatus: 'Rejected',
         startDate: '2024-03-01',
         endDate: '2025-02-28',
         value: '$200,000'
@@ -36,6 +39,7 @@ const contractsData = [
         client: 'Innovation Hub',
         type: 'Service Agreement',
         status: 'expired',
+        approvalStatus: 'N/A',
         startDate: '2023-01-01',
         endDate: '2023-12-31',
         value: '$150,000'
@@ -46,6 +50,7 @@ const contractsData = [
         client: 'MegaCorp Industries',
         type: 'License Agreement',
         status: 'expiring',
+        approvalStatus: 'Pending',
         startDate: '2023-09-15',
         endDate: '2024-09-14',
         value: '$300,000'
@@ -85,6 +90,14 @@ document.addEventListener('DOMContentLoaded', function() {
     populateContractsTable();
     populateAuditTable();
 });
+function normalizeApproval(value) {
+    const v = (value || '').toString().toLowerCase();
+    if (v === 'approved') return 'approved';
+    if (v === 'pending') return 'pending';
+    if (v === 'rejected') return 'rejected';
+    return 'na';
+}
+
 
 // Tab switching functionality
 function showTab(tabName) {
@@ -119,6 +132,7 @@ function populateContractsTable() {
             <td>${contract.client}</td>
             <td>${contract.type}</td>
             <td><span class="status ${contract.status}">${contract.status}</span></td>
+            <td><span class="approval ${normalizeApproval(contract.approvalStatus)}">${contract.approvalStatus || '-'}</span></td>
             <td>${contract.startDate}</td>
             <td>${contract.endDate}</td>
             <td>${contract.value}</td>
@@ -150,27 +164,29 @@ function populateAuditTable() {
         const contractsLabel = `${log.contractsAffected?.count ?? (log.contractId ? 1 : 0)} Contract${(log.contractsAffected?.count ?? (log.contractId ? 1 : 0)) !== 1 ? 's' : ''}`;
         const ids = log.contractsAffected?.ids || (log.contractId ? [log.contractId] : []);
         const idsHtml = ids.length ? `<details><summary>${contractsLabel}</summary><div>${ids.join(', ')}</div></details>` : '-';
-
-        const failed = log.failedContracts && log.failedContracts.length > 0
-            ? `<details><summary>${log.failedContracts.length} item${log.failedContracts.length !== 1 ? 's' : ''}</summary><div>${log.failedContracts.map(f => `${f.id} - ${f.reason || 'Unknown reason'}`).join('<br>')}</div></details>`
-            : '-';
-
         const templateApplied = log.templateApplied ?? '-';
         const renewalDate = log.renewalDate ?? '-';
         const resultSummary = log.resultSummary
             ? `${log.resultSummary.success} Succeeded, ${log.resultSummary.failed} Failed`
             : (log.action?.includes('Modified') ? '1 Succeeded, 0 Failed' : '-');
+        const failed = log.failedContracts && log.failedContracts.length > 0
+            ? `<details><summary>${log.failedContracts.length} item${log.failedContracts.length !== 1 ? 's' : ''}</summary><div>${log.failedContracts.map(f => `${f.id} - ${f.reason || 'Unknown reason'}`).join('<br>')}</div></details>`
+            : '-';
+
+        const renewalMethod = (log.action || '').toLowerCase().includes('bulk')
+            ? 'Bulk Renewal'
+            : ((log.action || '').toLowerCase().includes('renew') ? 'Automatic Renewal' : '-');
 
         row.innerHTML = `
             <td>${log.timestamp}</td>
             <td>${log.user}</td>
-            <td>${log.action}</td>
             <td>${idsHtml}</td>
             <td>${templateApplied}</td>
-            <td>${renewalDate}</td>
+            <td>${log.action || '-'}</td>
+            <td>${renewalMethod}</td>
             <td>${resultSummary}</td>
             <td>${failed}</td>
-            <td>${log.ipAddress}</td>
+            <td>${log.ipAddress || '-'}</td>
         `;
         tbody.appendChild(row);
     });
@@ -330,6 +346,9 @@ function confirmBulkRenew() {
         try {
             addAuditEntry('Contract Renewed', contractId, `Bulk renewal via template ${template} effective ${date}`);
             successCount++;
+            // Update approval status to Pending on renewal
+            const c = contractsData.find(x => x.id === contractId);
+            if (c) c.approvalStatus = 'Pending';
         } catch (e) {
             failureCount++;
             failedContracts.push({ id: contractId, reason: e?.message || 'Unknown error' });
@@ -359,6 +378,7 @@ function confirmBulkRenew() {
 
     selectedContracts.clear();
     updateSelectedContracts();
+    populateContractsTable();
 }
 
 function resolveTemplateLabel(value) {

@@ -225,6 +225,18 @@ body {
     color: #e74c3c;
 }
 
+/* Approval status pills */
+.approval {
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.approval.approved { background-color: #d5f4e6; color: #27ae60; }
+.approval.pending { background-color: #fef9e7; color: #f39c12; }
+.approval.rejected { background-color: #fadbd8; color: #e74c3c; }
+.approval.na { background-color: #ecf0f1; color: #7f8c8d; }
+
 .actions {
     display: flex;
     gap: 8px;
